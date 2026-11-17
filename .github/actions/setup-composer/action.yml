@@ -1,0 +1,14 @@
+name: Set up Composer
+description: Install Composer, verified against its published installer signature, in an official php container image. Needs git and unzip installed first.
+
+runs:
+  using: composite
+  steps:
+    - name: Install Composer
+      shell: bash
+      run: |
+        expected="$(curl -fsSL https://composer.github.io/installer.sig)"
+        curl -fsSL https://getcomposer.org/installer -o /tmp/composer-setup.php
+        echo "${expected}  /tmp/composer-setup.php" | sha384sum -c -
+        php /tmp/composer-setup.php --quiet --install-dir=/usr/local/bin --filename=composer
+        rm /tmp/composer-setup.php

@@ -1,0 +1,66 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }}, ${{ matrix.dependencies }} dependencies
+    runs-on: ubuntu-24.04
+    container: php:${{ matrix.php }}-cli
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4', '8.5']
+        dependencies: [lowest, highest]
+    steps:
+      # The php image has no git. Without it, actions/checkout downloads the
+      # GitHub tarball, which leaves out every export-ignore path (.github, tests).
+      # Composer downloads dist archives with unzip.
+      - name: Install system packages
+        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends git unzip > /dev/null
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-composer
+
+      # composer.lock is not committed: lowest proves the constraints' floors install
+      # and pass, highest catches a new release breaking the package.
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress ${{ matrix.dependencies == 'lowest' && '--prefer-lowest' || '' }}
+
+      - name: Run tests
+        run: vendor/bin/phpunit
+
+  static-analysis:
+    name: Pint and Larastan
+    runs-on: ubuntu-24.04
+    container: php:8.5-cli
+    steps:
+      # The php image has no git. Without it, actions/checkout downloads the
+      # GitHub tarball, which leaves out every export-ignore path (.github, tests).
+      # Composer downloads dist archives with unzip.
+      - name: Install system packages
+        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends git unzip > /dev/null
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-composer
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Check code style
+        run: vendor/bin/pint --test
+
+      - name: Run Larastan
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G --error-format=github

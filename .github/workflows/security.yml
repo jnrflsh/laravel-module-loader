@@ -1,0 +1,29 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # composer.lock is not committed, so a new advisory against a dependency
+  # surfaces only on a run: check weekly even when nothing is pushed.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  composer-audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # Resolve the dependency set a fresh install would get, without installing it.
+      - name: Resolve dependencies
+        run: composer update --no-install --no-interaction --no-progress
+
+      - name: Audit dependencies
+        run: composer audit --locked --no-interaction

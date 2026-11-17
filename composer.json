@@ -1,0 +1,55 @@
+{
+    "name": "jnrflsh/laravel-module-loader",
+    "type": "library",
+    "description": "Registers views, Blade components, translations, Livewire components and routes for UI modules in a Laravel app, with a cacheable manifest.",
+    "keywords": [
+        "laravel",
+        "livewire",
+        "blade",
+        "modules",
+        "modular"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jonas",
+            "email": "git@jnrflsh.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^13.30",
+        "livewire/livewire": "^4.4.8"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.10",
+        "laravel/pint": "^1.24",
+        "orchestra/testbench": "^11.0",
+        "phpunit/phpunit": "^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Jnrflsh\\ModuleLoader\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Jnrflsh\\ModuleLoader\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "lint": "pint --test",
+        "analyse": "phpstan analyse"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Jnrflsh\\ModuleLoader\\ModuleServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
